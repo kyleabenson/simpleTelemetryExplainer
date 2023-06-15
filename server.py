@@ -5,7 +5,6 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
-    app.logger.info("Received request")
     try:
         returnedArt = getArt()
         return '<!DOCTYPE html> <html> <p> Behold! Art: </p><img src="%s" alt="Met Art" /></html>' % (returnedArt)
