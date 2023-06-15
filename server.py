@@ -8,7 +8,7 @@ def hello_world():
     app.logger.info("Received request")
     try:
         returnedArt = getArt()
-        return '<p> Behold! Art: %s </p>' % (returnedArt)
+        return '<!DOCTYPE html> <html> <p> Behold! Art: </p><img src="%s" alt="Met Art" /></html>' % (returnedArt)
     except IndexError:
         abort(404)
     
@@ -22,9 +22,9 @@ def getArt():
     )
     try:
         results = query_job.result()  # Waits for job to complete.
-        for rows in results:
-            queryResults.append(rows)
-        return queryResults[0]
+        for row in results:
+            queryResults = row['original_image_url']
+        return queryResults
     except: 
         print("No results, is big query... down?")
 
