@@ -2,6 +2,7 @@ import logging
 import time
 from flask import Flask
 from google.cloud import bigquery
+
 ###################################
 # OTEL GCP Trace Libraries
 ###################################
@@ -12,6 +13,18 @@ from opentelemetry.sdk.trace.export import (
     ConsoleSpanExporter,
 )
 from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
+
+###################################
+# Otel GCP Monitoring Libraries
+###################################
+from opentelemetry import metrics
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+from opentelemetry.exporter.cloud_monitoring import (
+    CloudMonitoringMetricsExporter,
+)
+from opentelemetry.sdk.resources import Resource
+
 
 ###################################
 # Manually Configure GCP Trace
@@ -32,11 +45,42 @@ trace.set_tracer_provider(tracer_provider)
 # Creates a tracer from the global tracer provider
 tracer = trace.get_tracer("simpleExplainerTrace")
 
+###################################
+# Manually Configure GCP Monitoring
+###################################
+metrics.set_meter_provider(
+    MeterProvider(
+        metric_readers=[
+            PeriodicExportingMetricReader(
+                CloudMonitoringMetricsExporter(), export_interval_millis=5000
+            )
+        ],
+        resource=Resource.create(
+            {
+                "service.name": "basic_metrics",
+                "service.namespace": "examples",
+                "service.instance.id": "instance123",
+            }
+        ),
+    )
+)
+meter = metrics.get_meter(__name__)
+
+# Creates metric workload.googleapis.com/request_counter with monitored resource generic_task
+requests_counter = meter.create_counter(
+    name="request_counter",
+    description="number of requests",
+    unit="1",
+)
+
+staging_labels = {"environment": "prod"}
+
 
 app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
+    requests_counter.add(1, staging_labels)
     with tracer.start_as_current_span("flaskRequest") as span:
         app.logger.info("Fetching a random piece of art")
         time.sleep(4)

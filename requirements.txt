@@ -3,3 +3,4 @@ google-cloud-bigquery
 opentelemetry-api
 opentelemetry-sdk
 opentelemetry-exporter-gcp-trace
+opentelemetry-exporter-gcp-monitoring
