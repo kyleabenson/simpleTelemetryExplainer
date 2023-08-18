@@ -99,7 +99,7 @@ def hello_world():
     with tracer.start_as_current_span("flaskRequest") as frontend:
         # requests_counter.add(1, staging_labels)
         ctx = trace.get_current_span().get_span_context()
-        c.labels('get', '/').inc(exemplar={'trace_id': str(ctx.trace_id)})
+        c.labels('get', '/').inc(exemplar={'trace_id': str(ctx.trace_id),'span_id': str(ctx.span_id)})
         app.logger.info("Fetching a random piece of art")
         time.sleep(4)
         try:
